@@ -9,14 +9,35 @@ import (
 
 type memory [256]value
 
-type addr uint8
-type value uint8
+type addr uint32
+type value uint32
+type opcode uint16
 
 const (
 	IX   addr = 255
-	ACC  addr = 254
-	PC   addr = 253
-	COMP addr = 252
+	ACC       = 254
+	PC        = 253
+	COMP      = 252
+
+	O_LDM  opcode = 1
+	O_LDD         = 2
+	O_LDI         = 3
+	O_LDX         = 4
+	O_LDR         = 5
+	O_STO         = 6
+	O_ADD         = 7
+	O_INC         = 8
+	O_DEC         = 9
+	O_JMP         = 10
+	O_CMPA        = 11 // CMPaddr
+	O_CMPV        = 12 // CMPvalue
+	O_JPE         = 13
+	O_JPN         = 14
+	O_JGT         = 15
+	O_JLT         = 16
+	O_IN          = 17
+	O_OUT         = 18
+	O_END         = 19
 )
 
 type Op interface {
