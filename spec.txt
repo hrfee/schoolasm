@@ -1,0 +1,35 @@
+From 2021 CIE 9608 Syllabus page 23.
+Additional instruction JGT taken from 9608/32/M/J/16 Q 6c). 
+JLT added because why not.
+
+LDM     #n          Immediate addressing. Load the number n to ACC
+LDD     <address>   Direct addressing. Load the contents of the location at the given address to ACC
+LDI     <address>   Indirect addressing. The address to be used is at the given address. Load the contents of this second address to ACC
+LDX     <address>   Indexed addressing. Form the address from <address> + the contents of the index register. Copy the contents of this calculated address to ACC
+LDR     #n          Immediate addressing. Load the number n to IX
+STO     <address>   Store the contents of ACC at the given address
+ADD     <address>   Add the contents of the given address to the ACC
+INC     <register>  Add 1 to the contents of the register (ACC or IX)
+DEC     <register>  Subtract 1 from the contents of the register (ACC or IX)
+JMP     <address>   Jump to the given address
+CMP     <address>   Compare the contents of ACC with the contents of <address>
+CMP     #n          Compare the contents of ACC with number n
+JPE     <address>   Following a compare instruction, jump to <address> if the compare was True
+JPN     <address>   Following a compare instruction, jump to <address> if the compare was False
+
+JGT     <address>   Following a compare instruction, jump to <address> if the content of ACC is greater than the number used in the compare instruction (CMP)
+
+JLT     <address>   Opposite of JGT.
+
+IN                  Key in a character and store its ASCII value in ACC
+OUT                 Output to the screen the character whose ASCII value is stored in ACC
+END                 Return control to the operating system
+
+
+Addresses/Registers are 8-bit
+Memory size is 2048K (8 bits * 256)
+COMP is a regiter used for CMP comparisions.
+    COMP == 1: Identical
+    COMP == 0: ACC Less than val
+    COMP == 2: ACC Greater than val
+COMP at 252, PC at 253, ACC at 254, IX at 255
