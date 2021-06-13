@@ -13,17 +13,17 @@ JLT added because why not.
 09 DEC     <register>  Subtract 1 from the contents of the register (ACC or IX)
 10 JMP     <address>   Jump to the given address
 11 CMP     <address>   Compare the contents of ACC with the contents of <address>
-12 CMP     #n          Compare the contents of ACC with number n
-13 JPE     <address>   Following a compare instruction, jump to <address> if the compare was True
-14 JPN     <address>   Following a compare instruction, jump to <address> if the compare was False
+   CMP     #n          Compare the contents of ACC with number n
+12 JPE     <address>   Following a compare instruction, jump to <address> if the compare was True
+13 JPN     <address>   Following a compare instruction, jump to <address> if the compare was False
         
-15 JGT     <address>   Following a compare instruction, jump to <address> if the content of ACC is greater than the number used in the compare instruction (CMP)
+14 JGT     <address>   Following a compare instruction, jump to <address> if the content of ACC is greater than the number used in the compare instruction (CMP)
         
-16 JLT     <address>   Opposite of JGT.
+15 JLT     <address>   Opposite of JGT.
         
-17 IN                  Key in a character and store its ASCII value in ACC
-18 OUT                 Output to the screen the character whose ASCII value is stored in ACC
-19 END                 Return control to the operating system
+16 IN                  Key in a character and store its ASCII value in ACC
+17 OUT                 Output to the screen the character whose ASCII value is stored in ACC
+18 END                 Return control to the operating system
 
 Constant Operations (#n) must be 16 bit to fit into memory.
 Op structure:
@@ -39,3 +39,5 @@ COMP is a regiter used for CMP comparisions.
     COMP == 0: ACC Less than val
     COMP == 2: ACC Greater than val
 COMP at 252, PC at 253, ACC at 254, IX at 255
+
+Memory address 0 jumps to the first instruction.

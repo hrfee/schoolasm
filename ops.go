@@ -11,7 +11,7 @@ type memory [256]value
 
 type addr uint32
 type value uint32
-type opcode uint16
+type Opcode uint16
 
 const (
 	IX   addr = 255
@@ -19,25 +19,24 @@ const (
 	PC        = 253
 	COMP      = 252
 
-	O_LDM  opcode = 1
-	O_LDD         = 2
-	O_LDI         = 3
-	O_LDX         = 4
-	O_LDR         = 5
-	O_STO         = 6
-	O_ADD         = 7
-	O_INC         = 8
-	O_DEC         = 9
-	O_JMP         = 10
-	O_CMPA        = 11 // CMPaddr
-	O_CMPV        = 12 // CMPvalue
-	O_JPE         = 13
-	O_JPN         = 14
-	O_JGT         = 15
-	O_JLT         = 16
-	O_IN          = 17
-	O_OUT         = 18
-	O_END         = 19
+	O_LDM Opcode = 1
+	O_LDD        = 2
+	O_LDI        = 3
+	O_LDX        = 4
+	O_LDR        = 5
+	O_STO        = 6
+	O_ADD        = 7
+	O_INC        = 8
+	O_DEC        = 9
+	O_JMP        = 10
+	O_CMP        = 11
+	O_JPE        = 12
+	O_JPN        = 13
+	O_JGT        = 14
+	O_JLT        = 15
+	O_IN         = 16
+	O_OUT        = 17
+	O_END        = 18
 )
 
 type Op interface {
@@ -51,11 +50,11 @@ type LDM struct {
 	mem *memory
 }
 
-func newLDM(val value, mem *memory) *LDM {
-	return &LDM{val, mem}
+func newLDM(val value, mem *memory) LDM {
+	return LDM{val, mem}
 }
 
-func (op *LDM) Exec() {
+func (op LDM) Exec() {
 	op.mem[ACC] = op.val
 }
 
@@ -64,11 +63,11 @@ type LDD struct {
 	mem *memory
 }
 
-func newLDD(src addr, mem *memory) *LDD {
-	return &LDD{src, mem}
+func newLDD(src addr, mem *memory) LDD {
+	return LDD{src, mem}
 }
 
-func (op *LDD) Exec() {
+func (op LDD) Exec() {
 	op.mem[ACC] = op.mem[op.src]
 }
 
@@ -77,11 +76,11 @@ type LDI struct {
 	mem        *memory
 }
 
-func newLDI(addressSrc addr, mem *memory) *LDI {
-	return &LDI{addressSrc, mem}
+func newLDI(addressSrc addr, mem *memory) LDI {
+	return LDI{addressSrc, mem}
 }
 
-func (op *LDI) Exec() {
+func (op LDI) Exec() {
 	op.mem[ACC] = op.mem[op.mem[op.addressSrc]]
 }
 
@@ -90,11 +89,11 @@ type LDX struct {
 	mem   *memory
 }
 
-func newLDX(index addr, mem *memory) *LDX {
-	return &LDX{index, mem}
+func newLDX(index addr, mem *memory) LDX {
+	return LDX{index, mem}
 }
 
-func (op *LDX) Exec() {
+func (op LDX) Exec() {
 	op.mem[ACC] = op.mem[op.index+addr(op.mem[IX])]
 }
 
@@ -103,11 +102,11 @@ type LDR struct {
 	mem *memory
 }
 
-func newLDR(val value, mem *memory) *LDR {
-	return &LDR{val, mem}
+func newLDR(val value, mem *memory) LDR {
+	return LDR{val, mem}
 }
 
-func (op *LDR) Exec() {
+func (op LDR) Exec() {
 	op.mem[IX] = op.val
 }
 
@@ -116,11 +115,11 @@ type STO struct {
 	mem  *memory
 }
 
-func newSTO(dest addr, mem *memory) *STO {
-	return &STO{dest, mem}
+func newSTO(dest addr, mem *memory) STO {
+	return STO{dest, mem}
 }
 
-func (op *STO) Exec() {
+func (op STO) Exec() {
 	op.mem[op.dest] = op.mem[ACC]
 }
 
@@ -129,11 +128,11 @@ type ADD struct {
 	mem *memory
 }
 
-func newADD(src addr, mem *memory) *ADD {
-	return &ADD{src, mem}
+func newADD(src addr, mem *memory) ADD {
+	return ADD{src, mem}
 }
 
-func (op *ADD) Exec() {
+func (op ADD) Exec() {
 	op.mem[ACC] += op.mem[op.src]
 }
 
@@ -142,14 +141,14 @@ type INC struct {
 	mem *memory
 }
 
-func newINC(reg addr, mem *memory) *INC {
+func newINC(reg addr, mem *memory) INC {
 	if reg != ACC && reg != IX {
 		reg = ACC
 	}
-	return &INC{reg, mem}
+	return INC{reg, mem}
 }
 
-func (op *INC) Exec() {
+func (op INC) Exec() {
 	op.mem[op.reg] += 1
 }
 
@@ -158,14 +157,14 @@ type DEC struct {
 	mem *memory
 }
 
-func newDEC(reg addr, mem *memory) *DEC {
+func newDEC(reg addr, mem *memory) DEC {
 	if reg != ACC && reg != IX {
 		reg = ACC
 	}
-	return &DEC{reg, mem}
+	return DEC{reg, mem}
 }
 
-func (op *DEC) Exec() {
+func (op DEC) Exec() {
 	op.mem[op.reg] -= 1
 }
 
@@ -174,11 +173,11 @@ type JMP struct {
 	mem *memory
 }
 
-func newJMP(loc addr, mem *memory) *JMP {
-	return &JMP{loc, mem}
+func newJMP(loc addr, mem *memory) JMP {
+	return JMP{loc, mem}
 }
 
-func (op *JMP) Exec() {
+func (op JMP) Exec() {
 	op.mem[PC] = value(op.loc)
 }
 
@@ -188,11 +187,11 @@ type CMPval struct {
 	mem *memory
 }
 
-func newCMPval(val value, mem *memory) {
-	return &CMPval{val, mem}
+func newCMPval(val value, mem *memory) CMPval {
+	return CMPval{val, mem}
 }
 
-func (op *CMPval) Exec() {
+func (op CMPval) Exec() {
 	if op.mem[ACC] > op.val {
 		op.mem[COMP] = 2
 	} else if op.mem[ACC] < op.val {
@@ -207,11 +206,11 @@ type CMPaddr struct {
 	mem *memory
 }
 
-func newCMPaddr(src addr, mem *memory) *CMPaddr {
-	return &CMPaddr{src, mem}
+func newCMPaddr(src addr, mem *memory) CMPaddr {
+	return CMPaddr{src, mem}
 }
 
-func (op *CMPaddr) Exec() {
+func (op CMPaddr) Exec() {
 	(&CMPval{
 		val: op.mem[op.src],
 		mem: op.mem,
@@ -223,11 +222,11 @@ type JPE struct {
 	mem *memory
 }
 
-func newJPE(loc addr, mem *memory) *JPE {
-	return &JPE{loc, mem}
+func newJPE(loc addr, mem *memory) JPE {
+	return JPE{loc, mem}
 }
 
-func (op *JPE) Exec() {
+func (op JPE) Exec() {
 	if op.mem[COMP] == 1 {
 		op.mem[PC] = value(op.loc)
 	}
@@ -238,11 +237,11 @@ type JPN struct {
 	mem *memory
 }
 
-func newJPN(loc addr, mem *memory) *JPN {
-	return &JPN{loc, mem}
+func newJPN(loc addr, mem *memory) JPN {
+	return JPN{loc, mem}
 }
 
-func (op *JPN) Exec() {
+func (op JPN) Exec() {
 	if op.mem[COMP] != 1 {
 		op.mem[PC] = value(op.loc)
 	}
@@ -253,11 +252,11 @@ type JGT struct {
 	mem *memory
 }
 
-func newJGT(loc addr, mem *memory) *JGT {
-	return &JGT{loc, mem}
+func newJGT(loc addr, mem *memory) JGT {
+	return JGT{loc, mem}
 }
 
-func (op *JGT) Exec() {
+func (op JGT) Exec() {
 	if op.mem[COMP] == 2 {
 		op.mem[PC] = value(op.loc)
 	}
@@ -268,11 +267,11 @@ type JLT struct {
 	mem *memory
 }
 
-func newJLT(loc addr, mem *memory) *JLT {
-	return &JLT{loc, mem}
+func newJLT(loc addr, mem *memory) JLT {
+	return JLT{loc, mem}
 }
 
-func (op *JLT) Exec() {
+func (op JLT) Exec() {
 	if op.mem[COMP] == 0 {
 		op.mem[PC] = value(op.loc)
 	}
@@ -282,13 +281,13 @@ type IN struct {
 	mem *memory
 }
 
-func newIN(mem *memory) *IN {
-	return &IN{mem}
+func newIN(mem *memory) IN {
+	return IN{mem}
 }
 
 // Currently, the enter keypress is required for the op to unblock, so entering strings isn't possible.
 // if multiple are entered, the first character is taken.
-func (op *IN) Exec() {
+func (op IN) Exec() {
 	reader := bufio.NewReader(os.Stdin)
 	char, _, err := reader.ReadRune()
 	if err != nil {
@@ -304,11 +303,11 @@ type OUT struct {
 	mem *memory
 }
 
-func newOUT(mem *memory) *OUT {
-	return &OUT{mem}
+func newOUT(mem *memory) OUT {
+	return OUT{mem}
 }
 
-func (op *OUT) Exec() {
+func (op OUT) Exec() {
 	out := []byte{byte(op.mem[ACC])}
 	n, err := os.Stdout.Write(out)
 	if n != 1 || err != nil {
@@ -318,8 +317,8 @@ func (op *OUT) Exec() {
 
 type END struct{}
 
-func newEND() *END { return &END{} }
+func newEND() END { return END{} }
 
-func (op *END) Exec() {
+func (op END) Exec() {
 	os.Exit(0)
 }

@@ -15,10 +15,11 @@ func assertArgType(got, wanted, lineNum int) {
 	}
 }
 
-func populateMemory(file []string) memory {
-	var lineCount uint16 = 0
+func populateMemory(file []string) *memory {
+	var lineCount uint16 = 1
 	labels := map[string]addr{}
 	labeledValues := map[string]uint16{}
+	firstInstruction := true
 	var mem memory
 	for lineNum, l := range file {
 		isLabeledValue := false
@@ -37,7 +38,7 @@ func populateMemory(file []string) memory {
 				isLabeledValue = true
 			}
 		}
-
+		sects = strings.Split(l, " ")
 		var code string
 		i := 0
 		for _, c := range sects[0] {
@@ -106,71 +107,128 @@ func populateMemory(file []string) memory {
 		}
 		if code != "IN" && code != "OUT" && code != "END" {
 			if !hasArg {
-				panic(fmt.Errorf("%d: No argument given when required", lineNum))
+				panic(fmt.Errorf("%d: No argument given when required: %s", lineNum, l))
 			}
-			mem[lineCount] = (value(argType) << 32) + value(arg)
+			mem[lineCount] = (value(argType) << 31) + value(arg)
 		}
 		switch code {
 		case "LDM":
 			assertArgType(argType, 1, lineNum)
-			mem[lineCount] += value(O_LDM) << 16
+			mem[lineCount] += value(O_LDM) << 15
 		case "LDD":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_LDD) << 16
+			mem[lineCount] += value(O_LDD) << 15
 		case "LDI":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_LDI) << 16
+			mem[lineCount] += value(O_LDI) << 15
 		case "LDX":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_LDX) << 16
+			mem[lineCount] += value(O_LDX) << 15
 		case "LDR":
 			assertArgType(argType, 1, lineNum)
-			mem[lineCount] += value(O_LDR) << 16
+			mem[lineCount] += value(O_LDR) << 15
 		case "STO":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_STO) << 16
+			mem[lineCount] += value(O_STO) << 15
 		case "ADD":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_ADD) << 16
+			mem[lineCount] += value(O_ADD) << 15
 		case "INC":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_INC) << 16
+			mem[lineCount] += value(O_INC) << 15
 		case "DEC":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_DEC) << 16
+			mem[lineCount] += value(O_DEC) << 15
 		case "JMP":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_JMP) << 16
+			mem[lineCount] += value(O_JMP) << 15
 		case "CMP":
-			if argType == 0 {
-				mem[lineCount] += value(O_CMPA) << 16
-			} else {
-				mem[lineCount] += value(O_CMPV) << 16
-			}
+			mem[lineCount] += value(O_CMP) << 15
 		case "JPE":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_JPE) << 16
+			mem[lineCount] += value(O_JPE) << 15
 		case "JPN":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_JPN) << 16
+			mem[lineCount] += value(O_JPN) << 15
 		case "JGT":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_JGT) << 16
+			mem[lineCount] += value(O_JGT) << 15
 		case "JLT":
 			assertArgType(argType, 0, lineNum)
-			mem[lineCount] += value(O_JLT) << 16
+			mem[lineCount] += value(O_JLT) << 15
 		case "IN":
-			mem[lineCount] += value(O_IN) << 16
+			mem[lineCount] += value(O_IN) << 15
 		case "OUT":
-			mem[lineCount] += value(O_OUT) << 16
+			mem[lineCount] += value(O_OUT) << 15
 		case "END":
-			mem[lineCount] += value(O_END) << 16
+			mem[lineCount] += value(O_END) << 15
 		default:
 			fmt.Printf("%d: Skipping line: %v", lineNum, l)
 			continue
 		}
+		if firstInstruction {
+			mem[0] = value(O_JMP<<15) + value(lineCount)
+			firstInstruction = false
+		}
 		// Only increment lineCount if line was valid op.
 		lineCount++
 	}
-	return mem
+	return &mem
+}
+
+func parseInstruction(val value, mem *memory) (*Op, bool) {
+	opc := uint16(val >> 15)
+	isConstant := opc&uint16(1<<15) == uint16(1<<15)
+	if isConstant {
+		opc -= uint16(1 << 15)
+	}
+	arg := uint16(val) - (opc << 15)
+	opcode := Opcode(opc)
+	var op Op
+	ok := true
+	switch opcode {
+	case O_LDM:
+		op = newLDM(value(arg), mem)
+	case O_LDD:
+		op = newLDD(addr(arg), mem)
+	case O_LDI:
+		op = newLDI(addr(arg), mem)
+	case O_LDX:
+		op = newLDX(addr(arg), mem)
+	case O_LDR:
+		op = newLDR(value(arg), mem)
+	case O_STO:
+		op = newSTO(addr(arg), mem)
+	case O_ADD:
+		op = newADD(addr(arg), mem)
+	case O_INC:
+		op = newINC(addr(arg), mem)
+	case O_DEC:
+		op = newDEC(addr(arg), mem)
+	case O_JMP:
+		op = newJMP(addr(arg), mem)
+	case O_CMP:
+		if isConstant {
+			op = newCMPval(value(arg), mem)
+		} else {
+			op = newCMPaddr(addr(arg), mem)
+		}
+	case O_JPE:
+		op = newJPE(addr(arg), mem)
+	case O_JPN:
+		op = newJPN(addr(arg), mem)
+	case O_JGT:
+		op = newJGT(addr(arg), mem)
+	case O_JLT:
+		op = newJLT(addr(arg), mem)
+	case O_IN:
+		op = newIN(mem)
+	case O_OUT:
+		op = newOUT(mem)
+	case O_END:
+		op = newEND()
+	default:
+		ok = false
+	}
+	return &op, ok
 }
