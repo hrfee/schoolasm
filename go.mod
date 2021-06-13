@@ -1,3 +1,3 @@
-module github.com/hrfee/cambasm
+module github.com/hrfee/schoolasm
 
 go 1.16
