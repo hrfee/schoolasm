@@ -310,7 +310,7 @@ func newOUT(mem *memory) OUT {
 func (op OUT) Exec() {
 	Println("OUTING", op.mem[ACC])
 	out := []byte{byte(op.mem[ACC])}
-	n, err := os.Stdout.Write(out)
+	n, err := Out.Write(out)
 	if n != 1 || err != nil {
 		panic(err)
 	}
