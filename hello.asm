@@ -8,27 +8,27 @@ r: #114
 d: #100
 nl: #10
 
-LDM h
+LDD h
 OUT
-LDM e
+LDD e
 OUT
-LDM l
+LDD l
 OUT
 OUT
-LDM o
+LDD o
 OUT
-LDM spc
+LDD spc
 OUT
-LDM w
+LDD w
 OUT
-LDM o
+LDD o
 OUT
-LDM r
+LDD r
 OUT
-LDM l
+LDD l
 OUT
-LDM d
+LDD d
 OUT
-LDM nl
+LDD nl
 OUT
 END

@@ -18,7 +18,7 @@ func assertArgType(got, wanted, lineNum int) {
 func populateMemory(file []string) *memory {
 	var lineCount uint16 = 1
 	labels := map[string]addr{}
-	labeledValues := map[string]uint16{}
+	labeledValues := map[string]addr{}
 	firstInstruction := true
 	var mem memory
 	for lineNum, l := range file {
@@ -47,7 +47,7 @@ func populateMemory(file []string) *memory {
 			i++
 		}
 		code = sects[0][0:i]
-		var arg uint16
+		var arg uint32
 		hasArg := false
 		// 0 == address, 1 == constant.
 		argType := 0
@@ -65,14 +65,14 @@ func populateMemory(file []string) *memory {
 				if err != nil {
 					panic(fmt.Errorf("%d: Error parsing binary constant: %v", lineNum, err))
 				}
-				arg = uint16(i)
+				arg = uint32(i)
 				argType = 1
 			case '#':
 				i, err := strconv.ParseUint(argString[1:], 10, 16)
 				if err != nil {
 					panic(fmt.Errorf("%d: Error parsing number: %v", lineNum, err))
 				}
-				arg = uint16(i)
+				arg = uint32(i)
 				argType = 1
 			default:
 				i, err := strconv.ParseUint(argString, 2, 16)
@@ -94,14 +94,14 @@ func populateMemory(file []string) *memory {
 							if !ok {
 								panic(fmt.Errorf("%d: Error parsing address: %v", lineNum, err))
 							} else {
-								argType = 1
+								argType = 0
 							}
 							address = addr(a)
 						}
 					}
-					arg = uint16(address)
+					arg = uint32(address)
 				} else {
-					arg = uint16(i)
+					arg = uint32(i)
 				}
 			}
 		}
@@ -176,7 +176,8 @@ func populateMemory(file []string) *memory {
 			firstInstruction = false
 		}
 		if isLabeledValue {
-			labeledValues[labelSects[0]] = arg
+			labeledValues[labelSects[0]] = addr(lineCount)
+			mem[lineCount] = value(arg)
 			isLabeledValue = false
 		}
 		// Only increment lineCount if line was valid op.
