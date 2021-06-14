@@ -10,14 +10,14 @@ Mostly from the Syllabus, some instructions were unique to the question.
 08 INC     <register>  Increment (+1) <register>, either ACC or IX.
 09 DEC     <register>  Decrement (-1) <register>, either ACC or IX.
 10 JMP     <address>   Jump to <address>.
-11 CMP     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
-   CMP     #n          Compare, but with n rather than an address.
-12 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
-13 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.
+11 CMPA     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
+12 CMPV     #n          Compare, but with n rather than an address.
+13 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
+14 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.
         
-14 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
+15 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
         
-15 JLT     <address>   JGT, but if less than.
+16 JLT     <address>   JGT, but if less than.
 
 16 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
 17 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
@@ -25,8 +25,7 @@ Mostly from the Syllabus, some instructions were unique to the question.
 
 Constant values (#n) must be 16 bit to fit into memory.
 Op structure:
-Greatest bit: 1 = value is a constant value, 0 = value is an address.
-Next greatest 15 bits: Opcode. See ops.go.
+Greatest 16 bits: Opcode. See ops.go.
 The rest are the address or value.
 
 Addresses are 16 bit

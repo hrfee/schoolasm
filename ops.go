@@ -19,24 +19,25 @@ const (
 	PC        = 253
 	COMP      = 252
 
-	O_LDM Opcode = 1
-	O_LDD        = 2
-	O_LDI        = 3
-	O_LDX        = 4
-	O_LDR        = 5
-	O_STO        = 6
-	O_ADD        = 7
-	O_INC        = 8
-	O_DEC        = 9
-	O_JMP        = 10
-	O_CMP        = 11
-	O_JPE        = 12
-	O_JPN        = 13
-	O_JGT        = 14
-	O_JLT        = 15
-	O_IN         = 16
-	O_OUT        = 17
-	O_END        = 18
+	O_LDM  Opcode = 1
+	O_LDD         = 2
+	O_LDI         = 3
+	O_LDX         = 4
+	O_LDR         = 5
+	O_STO         = 6
+	O_ADD         = 7
+	O_INC         = 8
+	O_DEC         = 9
+	O_JMP         = 10
+	O_CMPA        = 11
+	O_CMPV        = 12
+	O_JPE         = 13
+	O_JPN         = 14
+	O_JGT         = 15
+	O_JLT         = 16
+	O_IN          = 17
+	O_OUT         = 18
+	O_END         = 19
 )
 
 type Op interface {

@@ -50,7 +50,6 @@ func populateMemory(file []string) *memory {
 		var arg uint32
 		hasArg := false
 		// 0 == address, 1 == constant.
-		argType := 0
 		if len(sects) != 1 {
 			hasArg = true
 			argString := ""
@@ -66,17 +65,17 @@ func populateMemory(file []string) *memory {
 					panic(fmt.Errorf("%d: Error parsing binary constant: %v", lineNum, err))
 				}
 				arg = uint32(i)
-				argType = 1
 			case '#':
 				i, err := strconv.ParseUint(argString[1:], 10, 16)
 				if err != nil {
 					panic(fmt.Errorf("%d: Error parsing number: %v", lineNum, err))
 				}
 				arg = uint32(i)
-				argType = 1
 			default:
 				i, err := strconv.ParseUint(argString, 2, 16)
-				argType = 0
+				if err != nil {
+					i, err = strconv.ParseUint(argString, 10, 16)
+				}
 				if err != nil {
 					var address addr
 					if argString == "ACC" {
@@ -93,8 +92,6 @@ func populateMemory(file []string) *memory {
 							a, ok := labeledValues[argString]
 							if !ok {
 								panic(fmt.Errorf("%d: Error parsing address: %v", lineNum, err))
-							} else {
-								argType = 0
 							}
 							address = addr(a)
 						}
@@ -109,53 +106,41 @@ func populateMemory(file []string) *memory {
 			if !hasArg {
 				panic(fmt.Errorf("%d: No argument given when required: %s", lineNum, l))
 			}
-			mem[lineCount] = (value(argType) << 31) + value(arg)
+			mem[lineCount] = value(arg)
 		}
 		isInstruction := true
 		switch code {
 		case "LDM":
-			assertArgType(argType, 1, lineNum)
 			mem[lineCount] += value(O_LDM) << 15
 		case "LDD":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_LDD) << 15
 		case "LDI":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_LDI) << 15
 		case "LDX":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_LDX) << 15
 		case "LDR":
-			assertArgType(argType, 1, lineNum)
 			mem[lineCount] += value(O_LDR) << 15
 		case "STO":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_STO) << 15
 		case "ADD":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_ADD) << 15
 		case "INC":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_INC) << 15
 		case "DEC":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_DEC) << 15
 		case "JMP":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_JMP) << 15
-		case "CMP":
-			mem[lineCount] += value(O_CMP) << 15
+		case "CMPA":
+			mem[lineCount] += value(O_CMPA) << 15
+		case "CMPV":
+			mem[lineCount] += value(O_CMPV) << 15
 		case "JPE":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_JPE) << 15
 		case "JPN":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_JPN) << 15
 		case "JGT":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_JGT) << 15
 		case "JLT":
-			assertArgType(argType, 0, lineNum)
 			mem[lineCount] += value(O_JLT) << 15
 		case "IN":
 			mem[lineCount] += value(O_IN) << 15
@@ -228,13 +213,12 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	case O_JMP:
 		op = newJMP(addr(arg), mem)
 		Println("JMP")
-	case O_CMP:
-		Println("CMP")
-		if isConstant {
-			op = newCMPval(value(arg), mem)
-		} else {
-			op = newCMPaddr(addr(arg), mem)
-		}
+	case O_CMPA:
+		Println("CMP Address")
+		op = newCMPaddr(addr(arg), mem)
+	case O_CMPV:
+		Println("CMP Value")
+		op = newCMPval(value(arg), mem)
 	case O_JPE:
 		op = newJPE(addr(arg), mem)
 		Println("JPE")
