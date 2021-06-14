@@ -1,25 +1,34 @@
-LDM #104
+h: #104
+e: #101
+l: #108
+o: #111
+spc: #32
+w: #119
+r: #114
+d: #100
+nl: #10
+
+LDM h
 OUT
-LDM #101
+LDM e
 OUT
-LDM #108
+LDM l
 OUT
-LDM #108
 OUT
-LDM #111
+LDM o
 OUT
-LDM #32
+LDM spc
 OUT
-LDM #119
+LDM w
 OUT
-LDM #111
+LDM o
 OUT
-LDM #114
+LDM r
 OUT
-LDM #108
+LDM l
 OUT
-LDM #100
+LDM d
 OUT
-LDM #10
+LDM nl
 OUT
 END

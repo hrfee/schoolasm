@@ -26,19 +26,18 @@ func populateMemory(file []string) *memory {
 		if l == "" || l[0] == ';' {
 			continue
 		}
-
-		sects := strings.Split(l, ":")
+		labelSects := strings.Split(l, ":")
 		if strings.Contains(l, ":") {
-			if len(sects) == 1 {
+			if len(labelSects) == 1 {
 				// labeled section
-				labels[sects[0]] = addr(lineCount)
+				labels[labelSects[0]] = addr(lineCount)
 				continue
 			} else {
 				// labeled value
 				isLabeledValue = true
 			}
 		}
-		sects = strings.Split(l, " ")
+		sects := strings.Split(l, " ")
 		var code string
 		i := 0
 		for _, c := range sects[0] {
@@ -86,11 +85,16 @@ func populateMemory(file []string) *memory {
 						address = IX
 					} else {
 						var ok bool
+						// Println("Looking up label")
+						// Printf("labels: %+v\n", labels)
+						// Printf("labeled: %+v\n", labeledValues)
 						address, ok = labels[argString]
 						if !ok {
 							a, ok := labeledValues[argString]
 							if !ok {
 								panic(fmt.Errorf("%d: Error parsing address: %v", lineNum, err))
+							} else {
+								argType = 1
 							}
 							address = addr(a)
 						}
@@ -100,10 +104,6 @@ func populateMemory(file []string) *memory {
 					arg = uint16(i)
 				}
 			}
-			if isLabeledValue {
-				labeledValues[sects[0]] = arg
-				isLabeledValue = false
-			}
 		}
 		if code != "IN" && code != "OUT" && code != "END" {
 			if !hasArg {
@@ -111,6 +111,7 @@ func populateMemory(file []string) *memory {
 			}
 			mem[lineCount] = (value(argType) << 31) + value(arg)
 		}
+		isInstruction := true
 		switch code {
 		case "LDM":
 			assertArgType(argType, 1, lineNum)
@@ -163,12 +164,20 @@ func populateMemory(file []string) *memory {
 		case "END":
 			mem[lineCount] += value(O_END) << 15
 		default:
-			fmt.Printf("%d: Skipping line: %v", lineNum, l)
-			continue
+			isInstruction = false
+			if !isLabeledValue {
+				Printf("%d: Skipping line: %v\n", lineNum, l)
+				continue
+			}
 		}
-		if firstInstruction {
+		if firstInstruction && isInstruction {
+			Println("First instruction @", lineCount)
 			mem[0] = value(O_JMP<<15) + value(lineCount)
 			firstInstruction = false
+		}
+		if isLabeledValue {
+			labeledValues[labelSects[0]] = arg
+			isLabeledValue = false
 		}
 		// Only increment lineCount if line was valid op.
 		lineCount++
@@ -177,6 +186,7 @@ func populateMemory(file []string) *memory {
 }
 
 func parseInstruction(val value, mem *memory) (*Op, bool) {
+	Println("COD", strconv.FormatUint(uint64(val), 2))
 	opc := uint16(val >> 15)
 	isConstant := opc&uint16(1<<15) == uint16(1<<15)
 	if isConstant {
@@ -189,25 +199,36 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	switch opcode {
 	case O_LDM:
 		op = newLDM(value(arg), mem)
+		Println("LDM")
 	case O_LDD:
 		op = newLDD(addr(arg), mem)
+		Println("LDD")
 	case O_LDI:
 		op = newLDI(addr(arg), mem)
+		Println("LDI")
 	case O_LDX:
 		op = newLDX(addr(arg), mem)
+		Println("LDX")
 	case O_LDR:
 		op = newLDR(value(arg), mem)
+		Println("LDR")
 	case O_STO:
 		op = newSTO(addr(arg), mem)
+		Println("STO")
 	case O_ADD:
 		op = newADD(addr(arg), mem)
+		Println("ADD")
 	case O_INC:
 		op = newINC(addr(arg), mem)
+		Println("INC")
 	case O_DEC:
 		op = newDEC(addr(arg), mem)
+		Println("DEC")
 	case O_JMP:
 		op = newJMP(addr(arg), mem)
+		Println("JMP")
 	case O_CMP:
+		Println("CMP")
 		if isConstant {
 			op = newCMPval(value(arg), mem)
 		} else {
@@ -215,18 +236,25 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 		}
 	case O_JPE:
 		op = newJPE(addr(arg), mem)
+		Println("JPE")
 	case O_JPN:
 		op = newJPN(addr(arg), mem)
+		Println("JPN")
 	case O_JGT:
 		op = newJGT(addr(arg), mem)
+		Println("JGT")
 	case O_JLT:
 		op = newJLT(addr(arg), mem)
+		Println("JLT")
 	case O_IN:
 		op = newIN(mem)
+		Println("IN")
 	case O_OUT:
 		op = newOUT(mem)
+		Println("OUT")
 	case O_END:
 		op = newEND()
+		Println("END")
 	default:
 		ok = false
 	}
