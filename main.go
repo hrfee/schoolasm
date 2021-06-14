@@ -13,13 +13,18 @@ import (
 
 const (
 	DEBUG = false
-	STEP  = 500
+	TABLE = false
+	STEP  = 0
 )
 
 type stdout struct{}
 
 func (w stdout) Write(p []byte) (n int, err error) {
-	outContent += string(p)
+	if TABLE {
+		outContent += string(p)
+	} else {
+		return os.Stdout.Write(p)
+	}
 	return len(p), nil
 }
 
@@ -28,13 +33,13 @@ var outContent string
 
 func Printf(a string, b ...interface{}) {
 	if DEBUG {
-		Printf(a, b...)
+		fmt.Printf(a, b...)
 	}
 }
 
 func Println(a ...interface{}) {
 	if DEBUG {
-		Println(a...)
+		fmt.Println(a...)
 	}
 }
 
@@ -111,7 +116,9 @@ func run(table *memTable, mem *memory) {
 		if ok && op != nil {
 			(*op).Exec()
 		}
-		table.genTable()
+		if TABLE {
+			table.genTable()
+		}
 		if mem[PC] == lastInstruction {
 			mem[PC]++
 		} else {
@@ -130,21 +137,24 @@ func main() {
 	}
 	lines := strings.Split(string(content), "\n")
 	mem := populateMemory(lines)
-	header := make([]string, 16)
-	for i := range header {
-		header[i] = strconv.Itoa(i)
+	var table *memTable
+	if TABLE {
+		header := make([]string, 16)
+		for i := range header {
+			header[i] = strconv.Itoa(i)
+		}
+		footer := make([]string, 16)
+		footer[15] = "IX"
+		footer[14] = "ACC"
+		footer[13] = "PC"
+		footer[12] = "COMP"
+		table = &memTable{
+			table: tablewriter.NewWriter(os.Stdout),
+			mem:   mem,
+		}
+		table.table.SetHeader(header)
+		table.table.SetFooter(footer)
+		Clear()
 	}
-	footer := make([]string, 16)
-	footer[15] = "IX"
-	footer[14] = "ACC"
-	footer[13] = "PC"
-	footer[12] = "COMP"
-	table := &memTable{
-		table: tablewriter.NewWriter(os.Stdout),
-		mem:   mem,
-	}
-	table.table.SetHeader(header)
-	table.table.SetFooter(footer)
-	Clear()
 	run(table, mem)
 }

@@ -28,7 +28,7 @@ func populateMemory(file []string) *memory {
 		}
 		labelSects := strings.Split(l, ":")
 		if strings.Contains(l, ":") {
-			if len(labelSects) == 1 {
+			if len(labelSects) == 1 || labelSects[1] == "" {
 				// labeled section
 				labels[labelSects[0]] = addr(lineCount)
 				continue
@@ -36,6 +36,9 @@ func populateMemory(file []string) *memory {
 				// labeled value
 				isLabeledValue = true
 			}
+		}
+		for l[0] == ' ' || l[0] == '\t' {
+			l = l[1:]
 		}
 		sects := strings.Split(l, " ")
 		var code string

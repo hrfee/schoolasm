@@ -151,6 +151,13 @@ func newINC(reg addr, mem *memory) INC {
 
 func (op INC) Exec() {
 	op.mem[op.reg] += 1
+	if DEBUG {
+		reg := "ACC"
+		if op.reg == IX {
+			reg = "IX"
+		}
+		Println("INC'd", reg, "to", op.mem[op.reg])
+	}
 }
 
 type DEC struct {
@@ -167,6 +174,13 @@ func newDEC(reg addr, mem *memory) DEC {
 
 func (op DEC) Exec() {
 	op.mem[op.reg] -= 1
+	if DEBUG {
+		reg := "ACC"
+		if op.reg == IX {
+			reg = "IX"
+		}
+		Println("DEC'd", reg, "to", op.mem[op.reg])
+	}
 }
 
 type JMP struct {
