@@ -1,40 +1,38 @@
-From 2021 CIE 9608 Syllabus page 23.
-Additional instruction JGT taken from 9608/32/M/J/16 Q 6c). 
-JLT added because why not.
+Mostly from the Syllabus, some instructions were unique to the question.
 
-01 LDM     #n          Immediate addressing. Load the number n to ACC
-02 LDD     <address>   Direct addressing. Load the contents of the location at the given address to ACC
-03 LDI     <address>   Indirect addressing. The address to be used is at the given address. Load the contents of this second address to ACC
-04 LDX     <address>   Indexed addressing. Form the address from <address> + the contents of the index register. Copy the contents of this calculated address to ACC
-05 LDR     #n          Immediate addressing. Load the number n to IX
-06 STO     <address>   Store the contents of ACC at the given address
-07 ADD     <address>   Add the contents of the given address to the ACC
-08 INC     <register>  Add 1 to the contents of the register (ACC or IX)
-09 DEC     <register>  Subtract 1 from the contents of the register (ACC or IX)
-10 JMP     <address>   Jump to the given address
-11 CMP     <address>   Compare the contents of ACC with the contents of <address>
-   CMP     #n          Compare the contents of ACC with number n
-12 JPE     <address>   Following a compare instruction, jump to <address> if the compare was True
-13 JPN     <address>   Following a compare instruction, jump to <address> if the compare was False
+01 LDM     #n          Load number n into the ACC.
+02 LDD     <address>   Load whatever's in <address> into the ACC.
+03 LDI     <address>   Load whatever's in the address stored in <address> to the ACC.
+04 LDX     <address>   Load whatever's in <address> + <contents of IX> into the ACC.
+05 LDR     #n          Load number n into the IX.
+06 STO     <address>   Write the contents of ACC in <address>.
+07 ADD     <address>   Add the contents of <address> to the ACC.
+08 INC     <register>  Increment (+1) <register>, either ACC or IX.
+09 DEC     <register>  Decrement (-1) <register>, either ACC or IX.
+10 JMP     <address>   Jump to <address>.
+11 CMP     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
+   CMP     #n          Compare, but with n rather than an address.
+12 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
+13 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.
         
-14 JGT     <address>   Following a compare instruction, jump to <address> if the content of ACC is greater than the number used in the compare instruction (CMP)
+14 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
         
-15 JLT     <address>   Opposite of JGT.
-        
-16 IN                  Key in a character and store its ASCII value in ACC
-17 OUT                 Output to the screen the character whose ASCII value is stored in ACC
-18 END                 Return control to the operating system
+15 JLT     <address>   JGT, but if less than.
 
-Constant Operations (#n) must be 16 bit to fit into memory.
+16 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
+17 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
+18 END                 Exit with a zero code. (may add other exit codes in future)
+
+Constant values (#n) must be 16 bit to fit into memory.
 Op structure:
 Greatest bit: 1 = value is a constant value, 0 = value is an address.
-Next greated 15 bits: Opcode.
+Next greatest 15 bits: Opcode. See ops.go.
 The rest are the address or value.
 
 Addresses are 16 bit
 Memory blocks/Registers are 32-bit
 Memory size is 8192 bits (32 bits * 256)
-COMP is a regiter used for CMP comparisions.
+COMP is a register used for CMP comparisions.
     COMP == 1: Identical
     COMP == 0: ACC Less than val
     COMP == 2: ACC Greater than val
