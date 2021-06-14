@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,15 +16,30 @@ func assertArgType(got, wanted, lineNum int) {
 	}
 }
 
+type unsatisfiedLabel struct {
+	address addr
+	lineNum int
+}
+
 func populateMemory(file []string) *memory {
 	var lineCount uint16 = 1
 	labels := map[string]addr{}
 	labeledValues := map[string]addr{}
+	// If usage of a label is encountered before creation,
+	// unsatisfiedLabels[name] = line num
+	// At end, if any remaining 65536's, error.
+	unsatisfiedLabels := map[string][]unsatisfiedLabel{}
 	firstInstruction := true
 	var mem memory
 	for lineNum, l := range file {
 		isLabeledValue := false
-		if l == "" || l[0] == ';' {
+		if l == "" {
+			continue
+		}
+		for l[0] == ' ' || l[0] == '\t' {
+			l = l[1:]
+		}
+		if l[0] == ';' || l[0] == '#' {
 			continue
 		}
 		labelSects := strings.Split(l, ":")
@@ -31,14 +47,18 @@ func populateMemory(file []string) *memory {
 			if len(labelSects) == 1 || labelSects[1] == "" {
 				// labeled section
 				labels[labelSects[0]] = addr(lineCount)
+				if labels, ok := unsatisfiedLabels[labelSects[0]]; ok {
+					for _, label := range labels {
+						Printf("Satisfying unsatisfied label \"%s\" on line %d with address %d\n", labelSects[0], label.lineNum, label.address)
+						mem[label.address] += value(lineCount)
+						delete(unsatisfiedLabels, labelSects[0])
+					}
+				}
 				continue
 			} else {
 				// labeled value
 				isLabeledValue = true
 			}
-		}
-		for l[0] == ' ' || l[0] == '\t' {
-			l = l[1:]
 		}
 		sects := strings.Split(l, " ")
 		var code string
@@ -94,9 +114,12 @@ func populateMemory(file []string) *memory {
 						if !ok {
 							a, ok := labeledValues[argString]
 							if !ok {
-								panic(fmt.Errorf("%d: Error parsing address: %v", lineNum, err))
+								unsatisfiedLabels[argString] = append(unsatisfiedLabels[argString], unsatisfiedLabel{address: addr(lineCount), lineNum: lineNum})
+								address = 0
+								// panic(fmt.Errorf("%d: Error parsing address: %v", lineNum, err))
+							} else {
+								address = addr(a)
 							}
-							address = addr(a)
 						}
 					}
 					arg = uint32(address)
@@ -165,11 +188,25 @@ func populateMemory(file []string) *memory {
 		}
 		if isLabeledValue {
 			labeledValues[labelSects[0]] = addr(lineCount)
+			if labels, ok := unsatisfiedLabels[labelSects[0]]; ok {
+				for _, label := range labels {
+					Printf("Satisfying unsatisfied label \"%s\" on line %d with address %d\n", labelSects[0], label.lineNum, label.address)
+					mem[label.address] += value(lineCount)
+					delete(unsatisfiedLabels, labelSects[0])
+				}
+			}
 			mem[lineCount] = value(arg)
 			isLabeledValue = false
 		}
 		// Only increment lineCount if line was valid op.
 		lineCount++
+	}
+	errOut := ""
+	for label, line := range unsatisfiedLabels {
+		errOut += fmt.Sprintf("%d: Label \"%s\" not defined\n", line, label)
+	}
+	if errOut != "" {
+		panic(errors.New(errOut))
 	}
 	return &mem
 }
