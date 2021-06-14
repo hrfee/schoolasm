@@ -35,6 +35,9 @@ COMP is a register used for CMP comparisions.
     COMP == 1: Identical
     COMP == 0: ACC Less than val
     COMP == 2: ACC Greater than val
-COMP at 252, PC at 253, ACC at 254, IX at 255
+IX at 255 (256-1)
+ACC at 254 (256-2)
+PC at 253 (256-3)
+COMP at 252 (256-4)
 
 Memory address 0 jumps to the first instruction.

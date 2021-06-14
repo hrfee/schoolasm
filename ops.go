@@ -7,17 +7,23 @@ import (
 	"unicode"
 )
 
-type memory [256]value
+const (
+	// memRoot is squared to get the memory size
+	memRoot = 16
+	memSize = memRoot * memRoot // 256 addresses
+)
+
+type memory [memSize]value
 
 type addr uint32
 type value uint32
 type Opcode uint16
 
 const (
-	IX   addr = 255
-	ACC       = 254
-	PC        = 253
-	COMP      = 252
+	IX addr = memSize - 1 - iota
+	ACC
+	PC
+	COMP
 
 	O_LDM  Opcode = 1
 	O_LDD         = 2
