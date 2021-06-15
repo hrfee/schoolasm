@@ -285,3 +285,32 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	}
 	return &op, ok
 }
+
+func MarshalMemory(mem *memory) []byte {
+	out := make([]byte, 4*memSize)
+	for j, v := range mem {
+		i := j * 4
+		b1 := byte((v & 0b11111111000000000000000000000000) >> 24)
+		b2 := byte((v & 0b00000000111111110000000000000000) >> 16)
+		b3 := byte((v & 0b00000000000000001111111100000000) >> 8)
+		b4 := byte((v & 0b00000000000000000000000011111111))
+		out[i] = b1
+		out[i+1] = b2
+		out[i+2] = b3
+		out[i+3] = b4
+	}
+	return out
+}
+
+func UnmarshalMemory(mem []byte) *memory {
+	var out memory
+	for j := range out {
+		i := j * 4
+		val := value(mem[i]) << 24
+		val += value(mem[i+1]) << 16
+		val += value(mem[i+2]) << 8
+		val += value(mem[i+3])
+		out[j] = val
+	}
+	return &out
+}
