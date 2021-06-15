@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"unicode"
 )
 
@@ -298,6 +299,28 @@ func (op JLT) Exec() {
 	}
 }
 
+// When IN is called, the character from the position (pos) in the buffer is loaded into the ACC. pos is then incremented.
+// The buffer stores the most recent line.
+// When a new line is entered, pos is set to zero and the line is written to buffer.
+type stdinBuffer struct {
+	buffer []byte
+	pos    int
+}
+
+// Capture continously writes new stdin input to the buffer.
+func (b *stdinBuffer) Capture() {
+	var err error
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		b.buffer, err = reader.ReadBytes('\n')
+		b.pos = 0
+		Println("NEW INPUT:", strings.ReplaceAll(string(b.buffer), "\n", "\\n"))
+		if err != nil {
+			panic(fmt.Sprintf("Failed to read from os.Stdin: %v", err))
+		}
+	}
+}
+
 type IN struct {
 	mem *memory
 }
@@ -309,15 +332,26 @@ func newIN(mem *memory) IN {
 // Currently, the enter keypress is required for the op to unblock, so entering strings isn't possible.
 // if multiple are entered, the first character is taken.
 func (op IN) Exec() {
-	reader := bufio.NewReader(os.Stdin)
-	char, _, err := reader.ReadRune()
-	if err != nil {
-		panic(err)
+	for StdinBuffer.buffer == nil || len(StdinBuffer.buffer) == 0 {
+		continue
 	}
+	char := string(StdinBuffer.buffer)[StdinBuffer.pos]
 	if char > unicode.MaxASCII {
 		panic(fmt.Errorf("Character was outside ASCII range"))
 	}
 	op.mem[ACC] = value(char)
+	StdinBuffer.pos++
+}
+
+type stdout struct{}
+
+func (w stdout) Write(p []byte) (n int, err error) {
+	if TABLE {
+		outContent += string(p)
+	} else {
+		return os.Stdout.Write(p)
+	}
+	return len(p), nil
 }
 
 type OUT struct {

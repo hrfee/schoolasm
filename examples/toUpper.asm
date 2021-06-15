@@ -1,3 +1,4 @@
+; input a string, and the uppercase version is returned.
 shiftAmount: #32
 E: #69
 n: #110
@@ -5,13 +6,14 @@ t: #116
 e: #101
 r: #114
 spc: #32
-a: #97
-c: #99
-h: #104
+s: #115
+o: #111
+m: #109
+x: #120
 colon: #58
 nl: #10
 
-enteracharacter:
+entersometext:
 	LDD E
 	OUT
 	LDD n
@@ -24,49 +26,49 @@ enteracharacter:
 	OUT
 	LDD spc
 	OUT
-	LDD a
+	LDD s
+	OUT
+	LDD o
+	OUT
+	LDD m
+	OUT
+	LDD e
 	OUT
 	LDD spc
-	OUT
-	LDD c
-	OUT
-	LDD h
-	OUT
-	LDD a
-	OUT
-	LDD r
-	OUT
-	LDD a
-	OUT
-	LDD c
 	OUT
 	LDD t
 	OUT
 	LDD e
 	OUT
-	LDD r
+	LDD x
+	OUT
+	LDD t
 	OUT
 	LDD colon
 	OUT
 	LDD spc
 	OUT
 
-; i := 0
-LDM #0
-STO #249
-; Get char and store in 250
-IN
-STO #250
+LOADCHAR:
+	; i := 0
+	LDM #0
+	STO #249
+	; Get char and store in 250
+	IN
+	STO #250
 
 ; Valid characters (a-zA-Z) from 65-122
 ; Jump to end if outside, or already uppercase (<90)
 INRANGE:
+	; Check if newline
+	CMPA nl
+	JPE EXIT
 	CMPV #65
-	JLT EXIT
+	JLT OUTPUT
 	CMPV #90
-	JLT EXIT
+	JLT OUTPUT
 	CMPV #122
-	JGT EXIT
+	JGT OUTPUT
 
 DECLOOP:
 	; Load charcode, decrement, then store.
@@ -81,7 +83,12 @@ DECLOOP:
 	CMPA shiftAmount
 	JPN DECLOOP
 
-EXIT:
+OUTPUT:
 	LDD #250
+	OUT
+	JMP LOADCHAR
+
+EXIT:
+	LDD nl
 	OUT
 	END

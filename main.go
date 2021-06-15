@@ -15,19 +15,10 @@ var (
 	STEP  = 0
 )
 
-type stdout struct{}
-
-func (w stdout) Write(p []byte) (n int, err error) {
-	if TABLE {
-		outContent += string(p)
-	} else {
-		return os.Stdout.Write(p)
-	}
-	return len(p), nil
-}
-
 var Out stdout
 var outContent string
+
+var StdinBuffer = stdinBuffer{}
 
 func Printf(a string, b ...interface{}) {
 	if DEBUG {
@@ -121,6 +112,7 @@ func main() {
 			table = NewTable(mem)
 			Clear()
 		}
+		go StdinBuffer.Capture()
 		run(table, mem)
 	}
 }
