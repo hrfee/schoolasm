@@ -47,7 +47,7 @@ Memory address 0 jumps to the first instruction.
 
 ---MACROS---
 LABEL: "Quoted ASCII string": Each byte is stored in sequential addresses (wasteful, i know).
-PRINT   <address>: Prints the character at the address, increments it, prints the next until a newline is encountered.
+PRINT   <address>: Prints the character at the address, increments it, prints the next until a zero is encountered.
     ; example:
         TEXT: "hi\n"
         PRINT TEXT

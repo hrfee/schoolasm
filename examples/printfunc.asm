@@ -23,13 +23,16 @@ PRINT:
 	LOOP:
 		LDI STR
 		OUT
-		CMPV #10
+		CMPV #0
 		JPE ENDPRINT
 		LDD STR
 		INC ACC
 		STO STR
 		JMP LOOP
 	ENDPRINT:
+		; newline
+		LDM #10
+		OUT
 		LDD RET
 		JMPA
 

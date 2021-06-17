@@ -120,11 +120,9 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 				if i == 0 {
 					continue
 				}
-				content := argString[1:i]
-				if content[len(content)-1] != '\n' {
-					content += "\n"
-				}
-				arg = make([]uint32, len(content))
+				replacer := strings.NewReplacer("\\n", "\n", "\\\"", "\"")
+				content := replacer.Replace(argString[1:i])
+				arg = make([]uint32, len(content)+1)
 				for i := range content {
 					arg[i] = uint32(content[i])
 				}
@@ -217,11 +215,12 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 		case "PRINT":
 			/*
 				LDR #0
-				LDI <address>
-				OUT
-				INC IX)
-				CMPV #10
-				JPN LOOP
+				LOOP:
+					LDI <address>
+					OUT
+					INC IX)
+					CMPV #10
+					JPN LOOP
 			*/
 			mem[lineCount] -= value(arg[0])
 			mem[lineCount] += value(O_LDR) << 15
@@ -229,11 +228,11 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 			loop := lineCount
 			mem[loop] += (value(O_LDX) << 15) + value(arg[0])
 			lineCount++
-			mem[lineCount] += (value(O_OUT) << 15)
+			mem[lineCount] += value(O_OUT) << 15
 			lineCount++
 			mem[lineCount] += (value(O_INC) << 15) + value(IX)
 			lineCount++
-			mem[lineCount] += (value(O_CMPV) << 15) + '\n'
+			mem[lineCount] += (value(O_CMPV) << 15) + 0
 			lineCount++
 			mem[lineCount] += (value(O_JPN) << 15) + value(loop)
 		default:

@@ -1,3 +1,3 @@
-TEST: "hello, world!"
+TEST: "hello,\nworld!\n"
 PRINT TEST
 END
