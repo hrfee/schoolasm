@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	DEBUG = false
-	TABLE = false
-	STEP  = 0
+	DEBUG   = false
+	TABLE   = false
+	SHOWMEM = []string{}
+	STEP    = 0
 )
 
 var Out stdout
@@ -32,9 +35,18 @@ func Println(a ...interface{}) {
 	}
 }
 
-func run(table *memTable, mem *memory) {
+func run(table *memTable, mem *memory, showAddresses map[string]addr) {
 	mem[PC] = 0
 	var lastInstruction value
+	addressOrder := make([]string, len(showAddresses))
+	if len(showAddresses) != 0 {
+		i := 0
+		for name := range showAddresses {
+			addressOrder[i] = name
+			i++
+		}
+		sort.Strings(addressOrder)
+	}
 	for {
 		lastInstruction = mem[PC]
 		Printf("ADDR %d ", mem[PC])
@@ -44,6 +56,13 @@ func run(table *memTable, mem *memory) {
 		}
 		if TABLE {
 			table.genTable()
+		}
+		if len(showAddresses) != 0 {
+			out := ""
+			for _, name := range addressOrder {
+				out += fmt.Sprintf("%s: %08b ", name, mem[showAddresses[name]])
+			}
+			fmt.Println(out)
 		}
 		if mem[PC] == lastInstruction {
 			mem[PC]++
@@ -66,8 +85,13 @@ func loadArgs() {
 	flag.BoolVar(&DEBUG, "debug", DEBUG, "print extra info when parsing & instruction info as they are executed. Doesn't play well with the table.")
 	flag.IntVar(&STEP, "step", STEP, "exec/run only. Wait this many milliseconds between each execution cycle.")
 	flag.BoolVar(&TABLE, "table", TABLE, "exec/run only. show table of memory contents during execution. Enabling sets step to 500ms.")
+	var showmem string
+	flag.StringVar(&showmem, "showmem", showmem, "comma-separated list of named/decimal addresses to show the value of on each cycle. named addresses only available with run.")
 	flag.Usage = argUsage
 	flag.Parse()
+	if showmem != "" {
+		SHOWMEM = strings.Split(showmem, ",")
+	}
 }
 
 func main() {
@@ -89,9 +113,10 @@ func main() {
 		os.Exit(1)
 	}
 	var mem *memory
+	showAddresses := map[string]addr{}
 	if runType == "run" || runType == "build" {
 		lines := strings.Split(string(content), "\n")
-		mem = populateMemory(lines)
+		mem, showAddresses = populateMemory(lines)
 		if runType == "build" {
 			name := strings.TrimSuffix(fname, filepath.Ext(fname)) + ".sch"
 			out := MarshalMemory(mem)
@@ -106,6 +131,23 @@ func main() {
 	} else if runType == "exec" {
 		mem = UnmarshalMemory(content)
 	}
+	for _, v := range SHOWMEM {
+		switch v {
+		case "IX":
+			showAddresses["IX"] = IX
+		case "ACC":
+			showAddresses["ACC"] = ACC
+		case "PC":
+			showAddresses["PC"] = PC
+		case "COMP":
+			showAddresses["COM"] = COMP
+		default:
+			n, err := strconv.Atoi(v)
+			if err == nil {
+				showAddresses[v] = addr(n)
+			}
+		}
+	}
 	if runType == "run" || runType == "exec" {
 		var table *memTable
 		if TABLE {
@@ -113,6 +155,6 @@ func main() {
 			Clear()
 		}
 		go StdinBuffer.Capture()
-		run(table, mem)
+		run(table, mem, showAddresses)
 	}
 }

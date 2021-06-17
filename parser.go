@@ -21,7 +21,7 @@ type unsatisfiedLabel struct {
 	lineNum int
 }
 
-func populateMemory(file []string) *memory {
+func populateMemory(file []string) (*memory, map[string]addr) {
 	var lineCount uint16 = 1
 	labels := map[string]addr{}
 	labeledValues := map[string]addr{}
@@ -30,6 +30,7 @@ func populateMemory(file []string) *memory {
 	// At end, if any remaining 65536's, error.
 	unsatisfiedLabels := map[string][]unsatisfiedLabel{}
 	firstInstruction := true
+	showAddresses := map[string]addr{}
 	var mem memory
 	for lineNum, l := range file {
 		isLabeledValue := false
@@ -54,6 +55,12 @@ func populateMemory(file []string) *memory {
 						delete(unsatisfiedLabels, labelSects[0])
 					}
 				}
+				for _, v := range SHOWMEM {
+					if labelSects[0] == v {
+						showAddresses[labelSects[0]] = addr(lineCount)
+						break
+					}
+				}
 				continue
 			} else {
 				// labeled value
@@ -72,7 +79,6 @@ func populateMemory(file []string) *memory {
 		code = sects[0][0:i]
 		var arg uint32
 		hasArg := false
-		// 0 == address, 1 == constant.
 		if len(sects) != 1 {
 			hasArg = true
 			argString := ""
@@ -174,6 +180,10 @@ func populateMemory(file []string) *memory {
 			mem[lineCount] += value(O_OUT) << 15
 		case "END":
 			mem[lineCount] += value(O_END) << 15
+		case "AND":
+			mem[lineCount] += value(O_AND) << 15
+		case "OR":
+			mem[lineCount] += value(O_OR) << 15
 		default:
 			isInstruction = false
 			if !isLabeledValue {
@@ -195,6 +205,12 @@ func populateMemory(file []string) *memory {
 					delete(unsatisfiedLabels, labelSects[0])
 				}
 			}
+			for _, v := range SHOWMEM {
+				if labelSects[0] == v {
+					showAddresses[labelSects[0]] = addr(lineCount)
+					break
+				}
+			}
 			mem[lineCount] = value(arg)
 			isLabeledValue = false
 		}
@@ -208,7 +224,7 @@ func populateMemory(file []string) *memory {
 	if errOut != "" {
 		panic(errors.New(errOut))
 	}
-	return &mem
+	return &mem, showAddresses
 }
 
 func parseInstruction(val value, mem *memory) (*Op, bool) {
@@ -280,6 +296,12 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	case O_END:
 		op = newEND()
 		Println("END")
+	case O_AND:
+		op = newAND(addr(arg), mem)
+		Println("AND")
+	case O_OR:
+		op = newOR(addr(arg), mem)
+		Println("OR")
 	default:
 		ok = false
 	}

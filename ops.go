@@ -45,13 +45,13 @@ const (
 	O_IN          = 17
 	O_OUT         = 18
 	O_END         = 19
+	O_AND         = 20
+	O_OR          = 21
 )
 
 type Op interface {
 	Exec()
 }
-
-//
 
 type LDM struct {
 	val value
@@ -377,4 +377,30 @@ func newEND() END { return END{} }
 
 func (op END) Exec() {
 	os.Exit(0)
+}
+
+type AND struct {
+	src addr
+	mem *memory
+}
+
+func newAND(src addr, mem *memory) AND {
+	return AND{src, mem}
+}
+
+func (op AND) Exec() {
+	op.mem[ACC] = (op.mem[ACC]) & (op.mem[op.src])
+}
+
+type OR struct {
+	src addr
+	mem *memory
+}
+
+func newOR(src addr, mem *memory) OR {
+	return OR{src, mem}
+}
+
+func (op OR) Exec() {
+	op.mem[ACC] = (op.mem[ACC]) | (op.mem[op.src])
 }

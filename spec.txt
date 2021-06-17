@@ -19,9 +19,11 @@ Mostly from the Syllabus, some instructions were unique to the question.
         
 16 JLT     <address>   JGT, but if less than.
 
-16 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
-17 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
-18 END                 Exit with a zero code. (may add other exit codes in future)
+17 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
+18 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
+19 END                 Exit with a zero code. (may add other exit codes in future)
+20 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
+21 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
 
 Constant values (#n) must be 16 bit to fit into memory.
 Op structure:
