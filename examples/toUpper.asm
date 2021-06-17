@@ -1,53 +1,9 @@
 ; input a string, and the uppercase version is returned.
 shiftAmount: #32
-E: #69
-n: #110
-t: #116
-e: #101
-r: #114
-spc: #32
-s: #115
-o: #111
-m: #109
-x: #120
-colon: #58
 nl: #10
 
-entersometext:
-	LDD E
-	OUT
-	LDD n
-	OUT
-	LDD t
-	OUT
-	LDD e
-	OUT
-	LDD r
-	OUT
-	LDD spc
-	OUT
-	LDD s
-	OUT
-	LDD o
-	OUT
-	LDD m
-	OUT
-	LDD e
-	OUT
-	LDD spc
-	OUT
-	LDD t
-	OUT
-	LDD e
-	OUT
-	LDD x
-	OUT
-	LDD t
-	OUT
-	LDD colon
-	OUT
-	LDD spc
-	OUT
+startmsg: "Enter some text: "
+PRINT startmsg
 
 LOADCHAR:
 	; i := 0

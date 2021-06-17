@@ -12,10 +12,14 @@ import (
 )
 
 var (
-	DEBUG   = false
-	TABLE   = false
-	SHOWMEM = []string{}
-	STEP    = 0
+	DEBUG     = false
+	TABLE     = false
+	SHOWMEM   = []string{}
+	STEP      = 0
+	WIDTH     = 0
+	HEIGHT    = 0
+	GUIOFFSET = 0
+	SCALE     = 10
 )
 
 var Out stdout
@@ -87,6 +91,10 @@ func loadArgs() {
 	flag.BoolVar(&TABLE, "table", TABLE, "exec/run only. show table of memory contents during execution. Enabling sets step to 500ms.")
 	var showmem string
 	flag.StringVar(&showmem, "showmem", showmem, "comma-separated list of named/decimal addresses to show the value of on each cycle. named addresses only available with run.")
+	flag.IntVar(&WIDTH, "width", WIDTH, "width of gui window. Disabled if blank.")
+	flag.IntVar(&HEIGHT, "height", HEIGHT, "height of gui window. Disabled if blank.")
+	flag.IntVar(&GUIOFFSET, "offset", GUIOFFSET, "starting address of memory used to set pixels for the gui window. Goes by row, then column.")
+	flag.IntVar(&SCALE, "scale", SCALE, "scale pixel size for gui.")
 	flag.Usage = argUsage
 	flag.Parse()
 	if showmem != "" {
@@ -149,6 +157,9 @@ func main() {
 		}
 	}
 	if runType == "run" || runType == "exec" {
+		if WIDTH != 0 && HEIGHT != 0 {
+			go newGUI(WIDTH, HEIGHT, SCALE, addr(GUIOFFSET), mem)
+		}
 		var table *memTable
 		if TABLE {
 			table = NewTable(mem)

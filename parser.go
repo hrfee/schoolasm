@@ -100,12 +100,6 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 				}
 			}
 			switch argString[0] {
-			case 'B':
-				i, err := strconv.ParseUint(argString[1:], 2, 16)
-				if err != nil {
-					panic(fmt.Errorf("%d: Error parsing binary constant: %v", lineNum, err))
-				}
-				arg = []uint32{uint32(i)}
 			case '#':
 				i, err := strconv.ParseUint(argString[1:], 10, 16)
 				if err != nil {
@@ -127,32 +121,40 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 					arg[i] = uint32(content[i])
 				}
 			default:
-				i, err := strconv.ParseUint(argString, 2, 16)
-				if err != nil {
-					i, err = strconv.ParseUint(argString, 10, 16)
-				}
-				if err != nil {
-					var address addr
-					if argString == "ACC" {
-						address = ACC
-					} else if argString == "IX" {
-						address = IX
-					} else {
-						var ok bool
-						address, ok = labels[argString]
-						if !ok {
-							a, ok := labeledValues[argString]
+				if argString[0] == 'B' && (argString[1] == '0' || argString[1] == '1') {
+					i, err := strconv.ParseUint(argString[1:], 2, 16)
+					if err != nil {
+						panic(fmt.Errorf("%d: Error parsing binary constant: %v", lineNum, err))
+					}
+					arg = []uint32{uint32(i)}
+				} else {
+					i, err := strconv.ParseUint(argString, 2, 16)
+					if err != nil {
+						i, err = strconv.ParseUint(argString, 10, 16)
+					}
+					if err != nil {
+						var address addr
+						if argString == "ACC" {
+							address = ACC
+						} else if argString == "IX" {
+							address = IX
+						} else {
+							var ok bool
+							address, ok = labels[argString]
 							if !ok {
-								unsatisfiedLabels[argString] = append(unsatisfiedLabels[argString], unsatisfiedLabel{address: addr(lineCount), lineNum: lineNum})
-								address = 0
-							} else {
-								address = addr(a)
+								a, ok := labeledValues[argString]
+								if !ok {
+									unsatisfiedLabels[argString] = append(unsatisfiedLabels[argString], unsatisfiedLabel{address: addr(lineCount), lineNum: lineNum})
+									address = 0
+								} else {
+									address = addr(a)
+								}
 							}
 						}
+						arg = []uint32{uint32(address)}
+					} else {
+						arg = []uint32{uint32(i)}
 					}
-					arg = []uint32{uint32(address)}
-				} else {
-					arg = []uint32{uint32(i)}
 				}
 			}
 		}
