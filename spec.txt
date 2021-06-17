@@ -1,6 +1,6 @@
-Mostly from the Syllabus, some instructions were unique to the question.
-
-01 LDM     #n          Load number n into the ACC.
+---INSTRUCTIONS---
+A mix of instructions from the syllabus, questions, and my own.
+01 LDM     #n          Load number n into the ACC. If given a label, the corresponding address will be loaded.
 02 LDD     <address>   Load whatever's in <address> into the ACC.
 03 LDI     <address>   Load whatever's in the address stored in <address> to the ACC.
 04 LDX     <address>   Load whatever's in <address> + <contents of IX> into the ACC.
@@ -10,21 +10,22 @@ Mostly from the Syllabus, some instructions were unique to the question.
 08 INC     <register>  Increment (+1) <register>, either ACC or IX.
 09 DEC     <register>  Decrement (-1) <register>, either ACC or IX.
 10 JMP     <address>   Jump to <address>.
-11 CMPA     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
-12 CMPV     #n          Compare, but with n rather than an address.
-13 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
-14 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.
+11 JMPA                Jump to the address stored in the ACC.
+12 CMPA     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
+13 CMPV     #n          Compare, but with n rather than an address.
+14 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
+15 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.      
+16 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
         
-15 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
-        
-16 JLT     <address>   JGT, but if less than.
+17 JLT     <address>   JGT, but if less than.
 
-17 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
-18 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
-19 END                 Exit with a zero code. (may add other exit codes in future)
-20 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
-21 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
+18 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
+19 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
+20 END                 Exit with a zero code. (may add other exit codes in future)
+21 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
+22 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
 
+---BYTECODE STUFF---
 Constant values (#n) must be 16 bit to fit into memory.
 Op structure:
 Greatest 16 bits: Opcode. See ops.go.
@@ -33,7 +34,7 @@ The rest are the address or value.
 Addresses are 16 bit
 Memory blocks/Registers are 32-bit
 Memory size is 8192 bits (32 bits * 256)
-COMP is a register used for CMP comparisions.
+COMP is a register used for CMP comparisons.
     COMP == 1: Identical
     COMP == 0: ACC Less than val
     COMP == 2: ACC Greater than val
@@ -43,3 +44,21 @@ PC at 253 (256-3)
 COMP at 252 (256-4)
 
 Memory address 0 jumps to the first instruction.
+
+---MACROS---
+LABEL: "Quoted ASCII string": Each byte is stored in sequential addresses (wasteful, i know).
+PRINT   <address>: Prints the character at the address, increments it, prints the next until a newline is encountered.
+    ; example:
+        TEXT: "hi\n"
+        PRINT TEXT
+    ; goes to:
+    LDR #0
+    LOOP:
+        LDX TEXT
+        OUT
+        INC IX
+        ; newline code
+        CMPV #10
+        JPN LOOP
+
+

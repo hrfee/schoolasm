@@ -60,7 +60,7 @@ func run(table *memTable, mem *memory, showAddresses map[string]addr) {
 		if len(showAddresses) != 0 {
 			out := ""
 			for _, name := range addressOrder {
-				out += fmt.Sprintf("%s: %08b ", name, mem[showAddresses[name]])
+				out += fmt.Sprintf("%s (%d): %08b ", name, showAddresses[name], mem[showAddresses[name]])
 			}
 			fmt.Println(out)
 		}

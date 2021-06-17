@@ -8,14 +8,6 @@ import (
 	"unicode"
 )
 
-func assertArgType(got, wanted, lineNum int) {
-	if got == 1 && wanted == 0 {
-		panic(fmt.Errorf("%d: Wanted address, got value constant", lineNum))
-	} else if got == 0 && wanted == 1 {
-		panic(fmt.Errorf("%d: Wanted value constant, got address", lineNum))
-	}
-}
-
 type unsatisfiedLabel struct {
 	address addr
 	lineNum int
@@ -67,7 +59,23 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 				isLabeledValue = true
 			}
 		}
-		sects := strings.Split(l, " ")
+		var sects []string
+		out := ""
+		inQuote := false
+		for _, c := range l {
+			if c == '"' {
+				inQuote = !inQuote
+			}
+			if c == ' ' && !inQuote {
+				sects = append(sects, out)
+				out = ""
+				continue
+			}
+			out += string(c)
+		}
+		if out != "" {
+			sects = append(sects, out)
+		}
 		var code string
 		i := 0
 		for _, c := range sects[0] {
@@ -77,14 +85,18 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 			i++
 		}
 		code = sects[0][0:i]
-		var arg uint32
+		var arg []uint32
 		hasArg := false
 		if len(sects) != 1 {
 			hasArg = true
 			argString := ""
+			inQuote := false
 			for _, c := range sects[1] {
-				if c != ' ' {
+				if inQuote || c != ' ' {
 					argString += string(c)
+					if c == '"' {
+						inQuote = !inQuote
+					}
 				}
 			}
 			switch argString[0] {
@@ -93,13 +105,29 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 				if err != nil {
 					panic(fmt.Errorf("%d: Error parsing binary constant: %v", lineNum, err))
 				}
-				arg = uint32(i)
+				arg = []uint32{uint32(i)}
 			case '#':
 				i, err := strconv.ParseUint(argString[1:], 10, 16)
 				if err != nil {
 					panic(fmt.Errorf("%d: Error parsing number: %v", lineNum, err))
 				}
-				arg = uint32(i)
+				arg = []uint32{uint32(i)}
+			case '"':
+				i := len(argString) - 1
+				for argString[i] != '"' && i >= 0 {
+					i--
+				}
+				if i == 0 {
+					continue
+				}
+				content := argString[1:i]
+				if content[len(content)-1] != '\n' {
+					content += "\n"
+				}
+				arg = make([]uint32, len(content))
+				for i := range content {
+					arg[i] = uint32(content[i])
+				}
 			default:
 				i, err := strconv.ParseUint(argString, 2, 16)
 				if err != nil {
@@ -113,32 +141,32 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 						address = IX
 					} else {
 						var ok bool
-						// Println("Looking up label")
-						// Printf("labels: %+v\n", labels)
-						// Printf("labeled: %+v\n", labeledValues)
 						address, ok = labels[argString]
 						if !ok {
 							a, ok := labeledValues[argString]
 							if !ok {
 								unsatisfiedLabels[argString] = append(unsatisfiedLabels[argString], unsatisfiedLabel{address: addr(lineCount), lineNum: lineNum})
 								address = 0
-								// panic(fmt.Errorf("%d: Error parsing address: %v", lineNum, err))
 							} else {
 								address = addr(a)
 							}
 						}
 					}
-					arg = uint32(address)
+					arg = []uint32{uint32(address)}
 				} else {
-					arg = uint32(i)
+					arg = []uint32{uint32(i)}
 				}
 			}
 		}
-		if code != "IN" && code != "OUT" && code != "END" {
+		if code != "IN" && code != "OUT" && code != "END" && code != "JMPA" {
 			if !hasArg {
 				panic(fmt.Errorf("%d: No argument given when required: %s", lineNum, l))
 			}
-			mem[lineCount] = value(arg)
+			i := lineCount
+			for _, v := range arg {
+				mem[i] = value(v)
+				i++
+			}
 		}
 		isInstruction := true
 		switch code {
@@ -162,6 +190,8 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 			mem[lineCount] += value(O_DEC) << 15
 		case "JMP":
 			mem[lineCount] += value(O_JMP) << 15
+		case "JMPA":
+			mem[lineCount] += value(O_JMPA) << 15
 		case "CMPA":
 			mem[lineCount] += value(O_CMPA) << 15
 		case "CMPV":
@@ -184,6 +214,28 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 			mem[lineCount] += value(O_AND) << 15
 		case "OR":
 			mem[lineCount] += value(O_OR) << 15
+		case "PRINT":
+			/*
+				LDR #0
+				LDI <address>
+				OUT
+				INC IX)
+				CMPV #10
+				JPN LOOP
+			*/
+			mem[lineCount] -= value(arg[0])
+			mem[lineCount] += value(O_LDR) << 15
+			lineCount++
+			loop := lineCount
+			mem[loop] += (value(O_LDX) << 15) + value(arg[0])
+			lineCount++
+			mem[lineCount] += (value(O_OUT) << 15)
+			lineCount++
+			mem[lineCount] += (value(O_INC) << 15) + value(IX)
+			lineCount++
+			mem[lineCount] += (value(O_CMPV) << 15) + '\n'
+			lineCount++
+			mem[lineCount] += (value(O_JPN) << 15) + value(loop)
 		default:
 			isInstruction = false
 			if !isLabeledValue {
@@ -211,7 +263,9 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 					break
 				}
 			}
-			mem[lineCount] = value(arg)
+			if len(arg) > 1 {
+				lineCount += uint16(len(arg) - 1)
+			}
 			isLabeledValue = false
 		}
 		// Only increment lineCount if line was valid op.
@@ -269,6 +323,9 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	case O_JMP:
 		op = newJMP(addr(arg), mem)
 		Println("JMP")
+	case O_JMPA:
+		op = newJMPA(mem)
+		Println("JMPA")
 	case O_CMPA:
 		Println("CMP Address")
 		op = newCMPaddr(addr(arg), mem)

@@ -36,17 +36,18 @@ const (
 	O_INC         = 8
 	O_DEC         = 9
 	O_JMP         = 10
-	O_CMPA        = 11
-	O_CMPV        = 12
-	O_JPE         = 13
-	O_JPN         = 14
-	O_JGT         = 15
-	O_JLT         = 16
-	O_IN          = 17
-	O_OUT         = 18
-	O_END         = 19
-	O_AND         = 20
-	O_OR          = 21
+	O_JMPA        = 11
+	O_CMPA        = 12
+	O_CMPV        = 13
+	O_JPE         = 14
+	O_JPN         = 15
+	O_JGT         = 16
+	O_JLT         = 17
+	O_IN          = 18
+	O_OUT         = 19
+	O_END         = 20
+	O_AND         = 21
+	O_OR          = 22
 )
 
 type Op interface {
@@ -203,6 +204,18 @@ func (op JMP) Exec() {
 	op.mem[PC] = value(op.loc)
 }
 
+type JMPA struct {
+	mem *memory
+}
+
+func newJMPA(mem *memory) JMPA {
+	return JMPA{mem}
+}
+
+func (op JMPA) Exec() {
+	op.mem[PC] = value(op.mem[ACC])
+}
+
 // CMP #n
 type CMPval struct {
 	val value
@@ -329,8 +342,6 @@ func newIN(mem *memory) IN {
 	return IN{mem}
 }
 
-// Currently, the enter keypress is required for the op to unblock, so entering strings isn't possible.
-// if multiple are entered, the first character is taken.
 func (op IN) Exec() {
 	for StdinBuffer.buffer == nil || len(StdinBuffer.buffer) == 0 {
 		continue
