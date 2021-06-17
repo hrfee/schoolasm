@@ -6,24 +6,25 @@ A mix of instructions from the syllabus, questions, and my own.
 04 LDX     <address>   Load whatever's in <address> + <contents of IX> into the ACC.
 05 LDR     #n          Load number n into the IX.
 06 STO     <address>   Write the contents of ACC in <address>.
-07 ADD     <address>   Add the contents of <address> to the ACC.
-08 INC     <register>  Increment (+1) <register>, either ACC or IX.
-09 DEC     <register>  Decrement (-1) <register>, either ACC or IX.
-10 JMP     <address>   Jump to <address>.
-11 JMPA                Jump to the address stored in the ACC.
-12 CMPA     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
-13 CMPV     #n          Compare, but with n rather than an address.
-14 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
-15 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.      
-16 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
+07 STX     <address>   Write the contents of ACC to <address> + <contents of IX>
+08 ADD     <address>   Add the contents of <address> to the ACC.
+09 INC     <register>  Increment (+1) <register>, either ACC or IX.
+10 DEC     <register>  Decrement (-1) <register>, either ACC or IX.
+11 JMP     <address>   Jump to <address>.
+12 JMPA                Jump to the address stored in the ACC.
+13 CMPA     <address>   Compare the ACC to whatever's in <address>. Note the order of these for other instructions.
+14 CMPV     #n          Compare, but with n rather than an address.
+15 JPE     <address>   Jump to <address> if the previous CMP showed values were identical.
+16 JPN     <address>   Jump to <address> if the previous CMP showed values were not identical.      
+17 JGT     <address>   Jump to <address> if the previous CMP showed ACC contents were greater than the contents of the compared address.
         
-17 JLT     <address>   JGT, but if less than.
+18 JLT     <address>   JGT, but if less than.
 
-18 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
-19 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
-20 END                 Exit with a zero code. (may add other exit codes in future)
-21 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
-22 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
+19 IN                  Blocks until a single character and a newline (enter) is entered in stdin. The ASCII ordinate is stored in the ACC.
+20 OUT                 Output the character corresponding the ASCII ordinate in the ACC to stdout.
+21 END                 Exit with a zero code. (may add other exit codes in future)
+22 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
+23 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
 
 ---BYTECODE STUFF---
 Constant values (#n) must be 16 bit to fit into memory.

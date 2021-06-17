@@ -32,22 +32,23 @@ const (
 	O_LDX         = 4
 	O_LDR         = 5
 	O_STO         = 6
-	O_ADD         = 7
-	O_INC         = 8
-	O_DEC         = 9
-	O_JMP         = 10
-	O_JMPA        = 11
-	O_CMPA        = 12
-	O_CMPV        = 13
-	O_JPE         = 14
-	O_JPN         = 15
-	O_JGT         = 16
-	O_JLT         = 17
-	O_IN          = 18
-	O_OUT         = 19
-	O_END         = 20
-	O_AND         = 21
-	O_OR          = 22
+	O_STX         = 7
+	O_ADD         = 8
+	O_INC         = 9
+	O_DEC         = 10
+	O_JMP         = 11
+	O_JMPA        = 12
+	O_CMPA        = 13
+	O_CMPV        = 14
+	O_JPE         = 15
+	O_JPN         = 16
+	O_JGT         = 17
+	O_JLT         = 18
+	O_IN          = 19
+	O_OUT         = 20
+	O_END         = 21
+	O_AND         = 22
+	O_OR          = 23
 )
 
 type Op interface {
@@ -130,6 +131,19 @@ func newSTO(dest addr, mem *memory) STO {
 
 func (op STO) Exec() {
 	op.mem[op.dest] = op.mem[ACC]
+}
+
+type STX struct {
+	dest addr
+	mem  *memory
+}
+
+func newSTX(dest addr, mem *memory) STX {
+	return STX{dest, mem}
+}
+
+func (op STX) Exec() {
+	op.mem[op.dest+addr(op.mem[IX])] = op.mem[ACC]
 }
 
 type ADD struct {
