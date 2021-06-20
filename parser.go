@@ -182,6 +182,8 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 			mem[lineCount] += value(O_LDR) << 15
 		case "STO":
 			mem[lineCount] += value(O_STO) << 15
+		case "STA":
+			mem[lineCount] += value(O_STA) << 15
 		case "STX":
 			mem[lineCount] += value(O_STX) << 15
 		case "ADD":
@@ -314,6 +316,9 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	case O_STO:
 		op = newSTO(addr(arg), mem)
 		Println("STO")
+	case O_STA:
+		op = newSTA(value(arg), mem)
+		Println("STA")
 	case O_STX:
 		op = newSTX(addr(arg), mem)
 		Println("STX")
