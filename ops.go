@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 	"unicode"
 )
 
+var KBINTERRUPT = make(chan bool)
+
 const (
 	// memRoot is squared to get the memory size
-	memRoot = 16
-	memSize = memRoot * memRoot // 256 addresses
+	memRoot = 32
+	memSize = memRoot * memRoot // 1024 addresses
 )
 
 type memory [memSize]value
@@ -50,6 +53,7 @@ const (
 	O_END         = 22
 	O_AND         = 23
 	O_OR          = 24
+	O_WMI         = 25
 )
 
 type Op interface {
@@ -259,7 +263,7 @@ func (op CMPval) Exec() {
 		op.mem[COMP] = 2
 	} else if op.mem[ACC] < op.val {
 		op.mem[COMP] = 0
-	} else {
+	} else if op.mem[ACC] == op.val {
 		op.mem[COMP] = 1
 	}
 }
@@ -442,4 +446,26 @@ func newOR(src addr, mem *memory) OR {
 
 func (op OR) Exec() {
 	op.mem[ACC] = (op.mem[ACC]) | (op.mem[op.src])
+}
+
+type WMI struct {
+	wait time.Duration
+}
+
+func newWMI(ms value) WMI {
+	return WMI{time.Duration(ms) * time.Millisecond}
+}
+
+func (op WMI) Exec() {
+	timechan := make(chan bool)
+	go func() {
+		time.Sleep(op.wait)
+		timechan <- true
+	}()
+	select {
+	case <-KBINTERRUPT:
+		break
+	case <-timechan:
+		break
+	}
 }

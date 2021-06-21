@@ -218,6 +218,8 @@ func populateMemory(file []string) (*memory, map[string]addr) {
 			mem[lineCount] += value(O_AND) << 15
 		case "OR":
 			mem[lineCount] += value(O_OR) << 15
+		case "WMI":
+			mem[lineCount] += value(O_WMI) << 15
 		case "PRINT":
 			/*
 				LDR #0
@@ -370,6 +372,9 @@ func parseInstruction(val value, mem *memory) (*Op, bool) {
 	case O_OR:
 		op = newOR(addr(arg), mem)
 		Println("OR")
+	case O_WMI:
+		op = newWMI(value(arg))
+		Println("WMI")
 	default:
 		ok = false
 	}

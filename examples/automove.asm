@@ -1,7 +1,7 @@
 ; move a dot around a 8x8 grid with the arrow keys.
 
-; run with -width 8 -height 8 -offset 180
-; e.g: schoolasm -width 8 -height 8 -offset 180 -scale 80 run examples/move.asm
+; run with -width 8 -height 8 -offset 800
+; e.g: schoolasm -width 8 -height 8 -offset 800 -scale 80 run examples/move.asm
 
 x: #0
 y: #0
@@ -63,7 +63,7 @@ XY:
 	STO y
 	STO cmp
 	STO count
-	; add the width (8) to cmp, check if greater than current offset, if not increment the y-value.
+	; add the width (4) to cmp, check if greater than current offset, if not increment the y-value.
 	Y:
 		LDD cmp
 		ADD width
@@ -124,50 +124,112 @@ SUB:
 		JPN LOOP
 		JMP upret
 
+; 0(up), 1(down), 2(left), 3(right)
+currentDirection: #3
+wasKeypress: #0
+
+checkDirection:
+	LDD currentDirection
+	CMPV #0
+	JPE up
+	CMPV #1
+	JPE down
+	CMPV #2
+	JPE left
+	CMPV #3
+	JPE right
+cCheckDirection:
+	LDD wasKeypress
+	CMPV #1
+	JPE EVLOOP
+	; wait 250ms unless keyboard interrupt
+	WMI #250
+	JMP EVLOOP
+
 ; cache for previous key states.
 upCache: #0
 downCache: #0
 leftCache: #0
 rightCache: #0
 
+nret: #0
+NOTKP:
+	LDM #0
+	STO wasKeypress
+	LDD nret
+	JMPA
+
 ; loop and c
 EVLOOP:
+	LDM #1
+	STO wasKeypress
 	; convert offset to x-y coords
 	JMP XY
 	LUP:
+		LDM LUPret
+		STO nret
 		LDI upAddr
 		CMPA upCache
 		STO upCache
-		JPE LDOWN
+		JPE NOTKP
+	LUPret:
+		LDI upAddr
 		CMPV #1
-		JPE up
+		JPN LDOWN
+		LDM #0
+		STO currentDirection
+		JMP checkDirection
 	LDOWN:
+		LDM LDOWNret
+		STO nret
 		LDI downAddr
 		CMPA downCache
 		STO downCache
-		JPE LLEFT
+		JPE NOTKP
+	LDOWNret:
+		LDI downAddr
 		CMPV #1
-		JPE down
+		JPN LLEFT
+		LDM #1
+		STO currentDirection
+		JMP checkDirection
 	LLEFT:
+		LDM LLEFTret
+		STO nret
 		LDI leftAddr
 		CMPA leftCache
 		STO leftCache
-		JPE LRIGHT
+		JPE NOTKP
+	LLEFTret:
+		LDI leftAddr
 		CMPV #1
-		JPE left
+		JPN LRIGHT
+		LDM #2
+		STO currentDirection
+		JMP checkDirection
 	LRIGHT:
+		LDM LRIGHTret
+		STO nret
 		LDI rightAddr
 		CMPA rightCache
 		STO rightCache
-		JPE LUP
+		JPE NOTKP
+	LRIGHTret:
+		LDI rightAddr
 		CMPV #1
-		JPE right
-	JMP EVLOOP
+		JPN ENDEVLOOP
+		LDM #3
+		STO currentDirection
+		JMP checkDirection
+	ENDEVLOOP:
+		LDM #0
+		STO wasKeypress
+		JMP checkDirection
 
 up:
 	LDD y
 	CMPV #0
-	JPE LUP
+	JPE cCheckDirection
 	LDD currentOffset
 	STO a
 	LDD width
@@ -181,12 +243,12 @@ up:
 	STO currentOffset
 	ADD startOffset
 	STA #1
-	JMP EVLOOP
+	JMP cCheckDirection
 
 down:
 	LDD y
 	CMPA maxY
-	JPE LUP
+	JPE cCheckDirection
 	LDD currentOffset
 	ADD startOffset
 	STA #0
@@ -195,12 +257,12 @@ down:
 	LDD currentOffset
 	ADD width
 	STO currentOffset
-	JMP EVLOOP
+	JMP cCheckDirection
 
 left:
 	LDD x
 	CMPV #0
-	JPE LUP
+	JPE cCheckDirection
 	LDD currentOffset
 	ADD startOffset
 	STA #0
@@ -209,12 +271,12 @@ left:
 	STO currentOffset
 	ADD startOffset
 	STA #1
-	JMP EVLOOP
+	JMP cCheckDirection
 
 right:
 	LDD x
 	CMPA maxX
-	JPE LUP
+	JPE cCheckDirection
 	LDD currentOffset
 	ADD startOffset
 	STA #0
@@ -223,4 +285,4 @@ right:
 	STO currentOffset
 	ADD startOffset
 	STA #1
-	JMP EVLOOP
+	JMP cCheckDirection

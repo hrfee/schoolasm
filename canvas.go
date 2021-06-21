@@ -44,6 +44,7 @@ func newCanvas(width, height, scale int, memStart addr, mem *memory) {
 		Println("UP", scancode, rn, name)
 	}
 	wnd.KeyDown = func(scancode int, rn rune, name string) {
+		isArrow := true
 		switch scancode {
 		case ArrowUp:
 			mem[keyUp] = 1
@@ -53,6 +54,13 @@ func newCanvas(width, height, scale int, memStart addr, mem *memory) {
 			mem[keyLeft] = 1
 		case ArrowRight:
 			mem[keyRight] = 1
+		default:
+			isArrow = false
+		}
+		if isArrow {
+			go func() {
+				KBINTERRUPT <- true
+			}()
 		}
 		Println("DOWN", scancode, rn, name)
 	}

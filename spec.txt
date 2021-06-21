@@ -26,6 +26,7 @@ A mix of instructions from the syllabus, questions, and my own.
 22 END                 Exit with a zero code. (may add other exit codes in future)
 23 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
 24 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
+25 WMI     #n          Wait <n> milliseconds unless keyboard input received (only interrupts with canvas enabled)
 
 ---BYTECODE STUFF---
 Constant values (#n) must be 16 bit to fit into memory.
@@ -35,15 +36,15 @@ The rest are the address or value.
 
 Addresses are 16 bit
 Memory blocks/Registers are 32-bit
-Memory size is 8192 bits (32 bits * 256)
+Memory size is 32768 bits (32 bits * 1024)
 COMP is a register used for CMP comparisons.
     COMP == 1: Identical
     COMP == 0: ACC Less than val
     COMP == 2: ACC Greater than val
-IX at 255 (256-1)
-ACC at 254 (256-2)
-PC at 253 (256-3)
-COMP at 252 (256-4)
+IX at 1023 (1024-1)
+ACC at 1022 (1024-2)
+PC at 1021 (1024-3)
+COMP at 1020 (1024-4)
 
 Memory address 0 jumps to the first instruction.
 
