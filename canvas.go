@@ -1,3 +1,5 @@
+// +build !nocanvas
+
 package main
 
 import (
@@ -5,6 +7,8 @@ import (
 
 	"github.com/tfriedel6/canvas/sdlcanvas"
 )
+
+var CANVAS = true
 
 // Scancodes for arrow keys. Names correspond to "name" arg in wnd.KeyUp/KeyDown.
 const (
@@ -14,7 +18,7 @@ const (
 	ArrowRight = 79
 )
 
-func newGUI(width, height, scale int, memStart addr, mem *memory) {
+func newCanvas(width, height, scale int, memStart addr, mem *memory) {
 	wnd, cv, err := sdlcanvas.CreateWindow(width*scale, height*scale, "schoolasm")
 	if err != nil {
 		panic(fmt.Errorf("Failed to create window: %v", err))
