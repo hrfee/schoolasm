@@ -1,6 +1,6 @@
 ### *school-asm*
 
-A compiler and bytecode interpeter for a made up instruction set inspired by whtat was used in my A level exam questions.
+A compiler and bytecode interpeter for a made up instruction set inspired by what was used in my A level exam questions.
 ```shell
 go build github.com/hrfee/schoolasm
 ./schoolasm run examples/hello.asm
