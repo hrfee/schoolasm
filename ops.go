@@ -54,6 +54,7 @@ const (
 	O_AND         = 23
 	O_OR          = 24
 	O_WMI         = 25
+	O_XOR         = 26
 )
 
 type Op interface {
@@ -375,10 +376,12 @@ func newIN(mem *memory) IN {
 }
 
 func (op IN) Exec() {
-	for StdinBuffer.buffer == nil || len(StdinBuffer.buffer) == 0 {
+	// Last comparison skips the newline. Might break some programs, idk.
+	for StdinBuffer.buffer == nil || len(StdinBuffer.buffer) == 0 || (len(StdinBuffer.buffer) > 0 && StdinBuffer.buffer[StdinBuffer.pos] == '\n') {
 		continue
 	}
 	char := string(StdinBuffer.buffer)[StdinBuffer.pos]
+	Println("GOT IN", char)
 	if char > unicode.MaxASCII {
 		panic(fmt.Errorf("Character was outside ASCII range"))
 	}
@@ -446,6 +449,19 @@ func newOR(src addr, mem *memory) OR {
 
 func (op OR) Exec() {
 	op.mem[ACC] = (op.mem[ACC]) | (op.mem[op.src])
+}
+
+type XOR struct {
+	src addr
+	mem *memory
+}
+
+func newXOR(src addr, mem *memory) XOR {
+	return XOR{src, mem}
+}
+
+func (op XOR) Exec() {
+	op.mem[ACC] = (op.mem[ACC]) & (op.mem[op.src])
 }
 
 type WMI struct {

@@ -26,6 +26,7 @@ A mix of instructions from the syllabus, questions, and my own.
 22 END                 Exit with a zero code. (may add other exit codes in future)
 23 AND     <address>   Bitwise AND the contents of the ACC with the contents of <address>, and store in ACC.
 24 OR      <address>   Bitwise OR the contents of the ACC with the contents of <address>, and store in ACC.
+25 XOR     <address>   Bitwise XOR the contents of the ACC with the contents of <address>, and store in ACC.
 25 WMI     #n          Wait <n> milliseconds unless keyboard input received (only interrupts with canvas enabled)
 
 ---BYTECODE STUFF---
