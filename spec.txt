@@ -29,6 +29,8 @@ A mix of instructions from the syllabus, questions, and my own.
 25 XOR     <address>   Bitwise XOR the contents of the ACC with the contents of <address>, and store in ACC.
 25 WMI     #n          Wait <n> milliseconds unless keyboard input received (only interrupts with canvas enabled)
 
+Note: Labeled addresses for storing values must be given a starting value, e.g "LABEL: #0" is valid but "LABEL:" is not.
+
 ---BYTECODE STUFF---
 Constant values (#n) must be 16 bit to fit into memory.
 Op structure:
